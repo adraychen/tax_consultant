@@ -17,7 +17,12 @@ if not gemini_key or not supabase_db_url:
     st.error("Missing configuration keys.")
     st.stop()
 
-llm = GoogleGenAI(model="gemini-1.5-flash", api_key=gemini_key)
+try:
+    llm = GoogleGenAI(model="gemini-1.5-flash", api_key=gemini_key)
+except Exception as e:
+    st.error(f"LLM init failed: {str(e)}")
+    st.stop()
+
 embed_model = GoogleGenAIEmbedding(model_name="text-embedding-004", api_key=gemini_key)
 
 vector_store = SupabaseVectorStore(
