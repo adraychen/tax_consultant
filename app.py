@@ -25,9 +25,14 @@ except Exception as e:
 
 embed_model = GoogleGenAIEmbedding(model_name="text-embedding-004", api_key=gemini_key)
 
-vector_store = SupabaseVectorStore(
-    postgres_connection_string=supabase_db_url,
-    collection_name="tax_knowledge"
+try:
+    vector_store = SupabaseVectorStore(
+        postgres_connection_string=supabase_db_url,
+        collection_name="tax_knowledge"
+    )
+except Exception as e:
+    st.error(f"Supabase connection failed: {str(e)}")
+    st.stop()
 )
 index = VectorStoreIndex.from_vector_store(vector_store, embed_model=embed_model)
 query_engine = index.as_query_engine(llm=llm)
