@@ -18,7 +18,7 @@ if not gemini_key or not supabase_db_url:
     st.stop()
 
 try:
-    llm = GoogleGenAI(model="gemini-1.5-flash", api_key=gemini_key)
+    llm = GoogleGenAI(model="gemini-2.0-flash", api_key=gemini_key)
 except Exception as e:
     st.error(f"LLM init failed: {str(e)}")
     st.stop()
