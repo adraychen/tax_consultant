@@ -1,27 +1,35 @@
+import streamlit as st
 import os
 from dotenv import load_dotenv
-from llama_index.core import VectorStoreIndex, SimpleDirectoryReader, StorageContext
+from llama_index.core import VectorStoreIndex
 from llama_index.vector_stores.supabase import SupabaseVectorStore
+from llama_index.llms.google_genai import GoogleGenAI
 from llama_index.embeddings.google_genai import GoogleGenAIEmbedding
 
 load_dotenv()
 
-def run_ingestion():
-    gemini_key = os.getenv("GEMINI_API_KEY")
-    supabase_url = os.getenv("SUPABASE_URL")
-    supabase_key = os.getenv("SUPABASE_KEY")
+st.title("🇨🇦 Canada Tax Assistant")
 
-    embed_model = GoogleGenAIEmbedding(model_name="text-embedding-004", api_key=gemini_key)
+gemini_key = st.secrets.get("GEMINI_API_KEY", os.getenv("GEMINI_API_KEY"))
+supabase_db_url = st.secrets.get("SUPABASE_DB_URL", os.getenv("SUPABASE_DB_URL"))
 
-    vector_store = SupabaseVectorStore(
-        postgres_connection_string=f"postgresql://postgres:{supabase_key}@{supabase_url.split('//')[1]}/postgres",
-        collection_name="tax_knowledge"
-    )
-    storage_context = StorageContext.from_defaults(vector_store=vector_store)
+if not gemini_key or not supabase_db_url:
+    st.error("Missing configuration keys.")
+    st.stop()
 
-    documents = SimpleDirectoryReader("./data").load_data()
-    index = VectorStoreIndex.from_documents(documents, storage_context=storage_context, embed_model=embed_model)
-    print("Ingestion complete.")
+llm = GoogleGenAI(model="gemini-1.5-flash", api_key=gemini_key)
+embed_model = GoogleGenAIEmbedding(model_name="text-embedding-004", api_key=gemini_key)
 
-if __name__ == "__main__":
-    run_ingestion()
+vector_store = SupabaseVectorStore(
+    postgres_connection_string=supabase_db_url,
+    collection_name="tax_knowledge"
+)
+index = VectorStoreIndex.from_vector_store(vector_store, embed_model=embed_model)
+query_engine = index.as_query_engine(llm=llm)
+
+if prompt := st.chat_input("How can I help with your tax question?"):
+    with st.chat_message("user"):
+        st.markdown(prompt)
+    with st.chat_message("assistant"):
+        response = query_engine.query(prompt)
+        st.markdown(response.response)
