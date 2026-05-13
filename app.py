@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 from llama_index.core import VectorStoreIndex
 from llama_index.vector_stores.supabase import SupabaseVectorStore
 from llama_index.llms.google_genai import GoogleGenAI
-from llama_index.embeddings.google_genai import GoogleGenAIEmbedding
+from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 
 load_dotenv()
 
@@ -23,17 +23,12 @@ except Exception as e:
     st.error(f"LLM init failed: {str(e)}")
     st.stop()
 
-embed_model = GoogleGenAIEmbedding(model_name="text-embedding-004", api_key=gemini_key)
+embed_model = HuggingFaceEmbedding(model_name="sentence-transformers/all-mpnet-base-v2")
 
-try:
-    vector_store = SupabaseVectorStore(
-        postgres_connection_string=supabase_db_url,
-        collection_name="tax_knowledge"
-    )
-except Exception as e:
-    st.error(f"Supabase connection failed: {str(e)}")
-    st.stop()
-
+vector_store = SupabaseVectorStore(
+    postgres_connection_string=supabase_db_url,
+    collection_name="tax_knowledge"
+)
 index = VectorStoreIndex.from_vector_store(vector_store, embed_model=embed_model)
 query_engine = index.as_query_engine(llm=llm)
 
