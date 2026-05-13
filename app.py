@@ -25,7 +25,7 @@ def init_models():
     try:
         # Switching to the explicit 'latest' string often resolves 404/NOT_FOUND errors 
         # in the llama-index google-genai integration.
-        llm = GoogleGenAI(model="models/gemini-2.0-flash-lite", api_key=gemini_key)
+        llm = GoogleGenAI(model="models/gemini-2.5-flash", api_key=gemini_key)
         
         # mpnet-base-v2 is a robust choice for tax-related semantic search.
         embed_model = HuggingFaceEmbedding(model_name="sentence-transformers/all-mpnet-base-v2")
