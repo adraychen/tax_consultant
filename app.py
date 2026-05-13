@@ -34,7 +34,7 @@ def init_query_engine(_llm, _embed_model):
         collection_name="tax_knowledge"
     )
     index = VectorStoreIndex.from_vector_store(vector_store, embed_model=_embed_model)
-    base_engine = index.as_query_engine(llm=_llm, similarity_top_k=15)
+    base_engine = index.as_query_engine(llm=_llm, similarity_top_k=30)
 
     tools = [
         QueryEngineTool(
