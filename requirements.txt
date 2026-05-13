@@ -5,6 +5,7 @@ llama-index-llms-google-genai
 llama-index-embeddings-huggingface
 llama-index-readers-web
 llama-index-retrievers-bm25
+llama-index-question-gen-openai
 python-dotenv
 google-genai
 psycopg2-binary
