@@ -47,7 +47,7 @@ if llm and embed_model:
         
         # Build the index
         index = VectorStoreIndex.from_vector_store(vector_store, embed_model=embed_model)
-        query_engine = index.as_query_engine(llm=llm, similarity_top_k=5)
+        query_engine = index.as_query_engine(llm=llm, similarity_top_k=15)
         
     except Exception as e:
         st.error(f"Vector Store connection failed: {str(e)}")
