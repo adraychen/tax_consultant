@@ -36,5 +36,8 @@ if prompt := st.chat_input("How can I help with your tax question?"):
     with st.chat_message("user"):
         st.markdown(prompt)
     with st.chat_message("assistant"):
-        response = query_engine.query(prompt)
-        st.markdown(response.response)
+        try:
+            response = query_engine.query(prompt)
+            st.markdown(response.response)
+        except Exception as e:
+            st.error(f"Query failed: {str(e)}")
