@@ -2,6 +2,8 @@ import streamlit as st
 import os
 from dotenv import load_dotenv
 from llama_index.core import VectorStoreIndex
+from llama_index.core.query_engine import SubQuestionQueryEngine
+from llama_index.core.tools import QueryEngineTool, ToolMetadata
 from llama_index.vector_stores.supabase import SupabaseVectorStore
 from llama_index.llms.google_genai import GoogleGenAI
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
@@ -9,7 +11,7 @@ from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 load_dotenv()
 
 st.set_page_config(page_title="Tax Assistant", page_icon="🇨🇦")
-st.title("Tax Assistant")
+st.title("🇨🇦 Canada Tax Assistant")
 
 gemini_key = st.secrets.get("GEMINI_API_KEY", os.getenv("GEMINI_API_KEY"))
 supabase_db_url = st.secrets.get("SUPABASE_DB_URL", os.getenv("SUPABASE_DB_URL"))
@@ -31,7 +33,24 @@ def init_query_engine(_llm, _embed_model):
         collection_name="tax_knowledge"
     )
     index = VectorStoreIndex.from_vector_store(vector_store, embed_model=_embed_model)
-    return index.as_query_engine(llm=_llm, similarity_top_k=15)
+
+    base_engine = index.as_query_engine(llm=_llm, similarity_top_k=15)
+
+    tools = [
+        QueryEngineTool(
+            query_engine=base_engine,
+            metadata=ToolMetadata(
+                name="canada_income_tax_act",
+                description="Contains the full text of the Canadian Income Tax Act including rules on income, deductions, credits, penalties, corporate tax, non-residents, and anti-avoidance provisions."
+            )
+        )
+    ]
+
+    return SubQuestionQueryEngine.from_defaults(
+        query_engine_tools=tools,
+        llm=_llm,
+        verbose=False
+    )
 
 llm, embed_model = init_models()
 query_engine = init_query_engine(llm, embed_model)
