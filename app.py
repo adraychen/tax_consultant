@@ -28,7 +28,7 @@ def init_models():
         llm = GoogleGenAI(model="models/gemini-2.5-flash", api_key=gemini_key)
         
         # mpnet-base-v2 is a robust choice for tax-related semantic search.
-        embed_model = HuggingFaceEmbedding(model_name="sentence-transformers/all-mpnet-base-v2")
+        embed_model = HuggingFaceEmbedding(model_name="nlpaueb/legal-bert-base-uncased")
         
         return llm, embed_model
     except Exception as e:
