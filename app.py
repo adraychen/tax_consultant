@@ -7,6 +7,7 @@ from llama_index.core.tools import QueryEngineTool, ToolMetadata
 from llama_index.vector_stores.supabase import SupabaseVectorStore
 from llama_index.llms.google_genai import GoogleGenAI
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
+from llama_index.core.question_gen import LLMQuestionGenerator
 
 load_dotenv()
 
@@ -25,6 +26,33 @@ def init_models():
     llm = GoogleGenAI(model="gemini-2.5-flash", api_key=gemini_key)
     embed_model = HuggingFaceEmbedding(model_name="nlpaueb/legal-bert-base-uncased")
     return llm, embed_model
+
+# @st.cache_resource
+# def init_query_engine(_llm, _embed_model):
+#     vector_store = SupabaseVectorStore(
+#         postgres_connection_string=supabase_db_url,
+#         collection_name="tax_knowledge"
+#     )
+#     index = VectorStoreIndex.from_vector_store(vector_store, embed_model=_embed_model)
+
+#     base_engine = index.as_query_engine(llm=_llm, similarity_top_k=15)
+
+#     tools = [
+#         QueryEngineTool(
+#             query_engine=base_engine,
+#             metadata=ToolMetadata(
+#                 name="canada_income_tax_act",
+#                 description="Contains the full text of the Canadian Income Tax Act including rules on income, deductions, credits, penalties, corporate tax, non-residents, and anti-avoidance provisions."
+#             )
+#         )
+#     ]
+
+#     return SubQuestionQueryEngine.from_defaults(
+#         query_engine_tools=tools,
+#         llm=_llm,
+#         verbose=False
+#     )
+
 
 @st.cache_resource
 def init_query_engine(_llm, _embed_model):
@@ -46,12 +74,15 @@ def init_query_engine(_llm, _embed_model):
         )
     ]
 
+    question_gen = LLMQuestionGenerator.from_defaults(llm=_llm)
+
     return SubQuestionQueryEngine.from_defaults(
         query_engine_tools=tools,
         llm=_llm,
+        question_gen=question_gen,
         verbose=False
     )
-
+    
 llm, embed_model = init_models()
 query_engine = init_query_engine(llm, embed_model)
 
